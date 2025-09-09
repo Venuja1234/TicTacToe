@@ -73,5 +73,56 @@ int main(){
 	     scanf("%d", &move);
 
 }
+}        int player = 1;
+
+        while (1){
+             system("clear");
+
+             drawboard();
+             player = (player % 2)? 1:2;
+             printf("Player %d move (1-9); ",player);
+             scanf("%d", &move);
+        }
+       
+
+        if (move < 1 || move > 9){
+           printf("Invalid input! Please enter 1-9.\n");
+           player--;
+	   continue;
+	} 
+        
+        row = (move -1)/3;
+        column = (move -1)% 3;
+
+	if (board[row][column] != 'x' && board[row][column] != 'o'){
+	   board[row][column] = (player == 1)?'x':'o';
+       
+	}else {
+	     printf("Warning! Cell already taken.\n");
+	     player--;
+	}
+        
+        gamestatus = checkwin();
+	if (gamestatus == 1){
+	   system("clear");
+	   drawboard();
+	   printf("Player %d Wins!\n",player);
+	   break;
+	
+	}else if (gamestatus == 2){
+	   system("clear");
+	   drawboard();
+	   printf("Match Draw! Try again.\n");
+	   break;
+	
+	} 
+         player++;
+	
+	 }
+	 return 0;
+	 
+
+
 }
+	 
 
