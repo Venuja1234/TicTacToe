@@ -1,99 +1,192 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "tictactoe.h"
 
 
-char board[3][3] = {
-    {'1','2','3'},
-    {'4','5','6'},
-    {'7','8','9'}
-};
+// tictactoe.c - Implementation file
 
-void drawboard() {
-    for (int i = 0; i < 3; i++) {
-        printf(" %c | %c | %c \n", board[i][0], board[i][1], board[i][2]);
-        if (i != 2) {
-            printf("---|---|---\n");
+// Initialize the game board with empty spaces
+char** initializingBoard(int n) {
+    char** board = (char**)malloc(n * sizeof(char*));
+    if (board == NULL) {
+        printf("Memory allocation failed!\n");
+        exit(1);
+    }
+    
+    for (int i = 0; i < n; i++) {
+        board[i] = (char*)malloc(n * sizeof(char));
+        if (board[i] == NULL) {
+            printf("Memory allocation failed!\n");
+            // Free previously allocated memory
+            for (int j = 0; j < i; j++) {
+                free(board[j]);
+            }
+            free(board);
+            exit(1);
+        }
+        // Initialize with empty spaces
+        for (int j = 0; j < n; j++) {
+            board[i][j] = ' ';
         }
     }
+    return board;
 }
 
-int checkwin() {
-   
-    for (int i = 0; i < 3; i++) {
-        if (board[i][0] == board[i][1] && board[i][1] == board[i][2]) {
-            return 1;
-        }
+// Free dynamically allocated memory
+void freeBoard(char** board, int n) {
+    for (int i = 0; i < n; i++) {
+        free(board[i]);
     }
-    
-    for (int i = 0; i < 3; i++) {
-        if (board[0][i] == board[1][i] && board[1][i] == board[2][i]) {
-            return 1;
-        }
-    }
-    
-    if (board[0][0] == board[1][1] && board[1][1] == board[2][2]) {
-        return 1;
-    }
-    if (board[2][0] == board[1][1] && board[1][1] == board[0][2]) {
-        return 1;
-    }
+    free(board);
+}
 
-   
+// Display the current board state
+void displayingBoard(char** board, int n) {
+    printf("\n   ");
+    // Column headers
+    for (int i = 0; i < n; i++) {
+        printf(" %d  ", i + 1);
+    }
+    printf("\n");
+    
+    for (int i = 0; i < n; i++) {
+        printf("%d  ", i + 1); // Row number
+        for (int j = 0; j < n; j++) {
+            printf(" %c ", board[i][j]);
+            if (j < n - 1) printf("|");
+        }
+        printf("\n");
+        
+        // Horizontal separator
+        if (i < n - 1) {
+            printf("   ");
+            for (int j = 0; j < n; j++) {
+                printf("---");
+                if (j < n - 1) printf("+");
+            }
+            printf("\n");
+        }
+    }
+    printf("\n");
+}
+
+// Get user input for move
+int gettingUserInput(int* row, int* col, int n, char player) {
+    printf("Player %c's turn. Enter row and column (1-%d): ", player, n);
+    
+    if (scanf("%d %d", row, col) != 2) {
+        printf("Invalid input! Please enter two numbers.\n");
+        // Clear input buffer
+        while (getchar() != '\n');
+        return 0;
+    }
+    
+    // Convert to 0-based indexing
+    (*row)--;
+    (*col)--;
+    
+    return 1;
+}
+
+// Validate if the move is legal
+int validatingMove(char** board, int row, int col, int n) {
+    // Check bounds
+    if (row < 0 || row >= n || col < 0 || col >= n) {
+        printf("Invalid position! Please choose between 1-%d.\n", n);
+        return 0;
+    }
+    
+    // Check if cell is empty
+    if (board[row][col] != ' ') {
+        printf("Cell already occupied! Choose another position.\n");
+        return 0;
+    }
+    
+    return 1;
+}
+
+// Make a move on the board
+int makeMove(char** board, int row, int col, char player) {
+    board[row][col] = player;
+    return 1;
+}
+
+// Check for win condition
+int checkWinCon(char** board, int n, char player) {
+    // Check rows
+    for (int i = 0; i < n; i++) {
+        int count = 0;
+        for (int j = 0; j < n; j++) {
+            if (board[i][j] == player) count++;
+        }
+        if (count == n) return 1;
+    }
+    
+    // Check columns
+    for (int j = 0; j < n; j++) {
+        int count = 0;
+        for (int i = 0; i < n; i++) {
+            if (board[i][j] == player) count++;
+        }
+        if (count == n) return 1;
+    }
+    
+    // Check main diagonal
     int count = 0;
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            if (board[i][j] != 'x' && board[i][j] != 'o') {
-                count++;
+    for (int i = 0; i < n; i++) {
+        if (board[i][i] == player) count++;
+    }
+    if (count == n) return 1;
+    
+    // Check anti-diagonal
+    count = 0;
+    for (int i = 0; i < n; i++) {
+        if (board[i][n - 1 - i] == player) count++;
+    }
+    if (count == n) return 1;
+    
+    return 0;
+}
+
+// Check for draw condition
+int checkDrawCon(char** board, int n) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            if (board[i][j] == ' ') {
+                return 0; // Still empty cells
             }
         }
     }
-    if (count == 0) return 2;
-
-    return 0;
+    return 1; // Board is full
 }
 
-int main() {
-    int row, column, move, gamestatus;
-    int player = 1;
-
-    while (1) {
-        system("clear");
-        drawboard();
-
-        player = (player % 2) ? 1 : 2;
-        printf("Player %d move (1-9): ", player);
-        scanf("%d", &move);
-
-       
-        if (move < 1 || move > 9) {
-            printf("Invalid input! Please enter 1-9.\n");
-            player--;
-            continue;
-        }
-
-        row = (move - 1) / 3;
-        column = (move - 1) % 3;
-
-        if (board[row][column] != 'x' && board[row][column] != 'o') {
-            board[row][column] = (player == 1) ? 'x' : 'o';
-        } else {
-            printf("Warning! Cell already taken.\n");
-            player--;
-        }
- 
-        gamestatus = checkwin();
-        if (gamestatus == 1) {
-            system("clear");
-            drawboard();
-            printf("Player %d Wins!\n", player);
-            break;
-        } else if (gamestatus == 2) {
-            system("clear");
-            drawboard();
-            printf("Match Draw! Try again.\n");
-            break;
-        }
-        player++;
+// Log game state to file
+void logGameStatus(char** board, int n, const char* filename, int move_count) {
+    FILE* file = fopen(filename, "a");
+    if (file == NULL) {
+        printf("Error opening log file!\n");
+        return;
     }
-    return 0;
+    
+    fprintf(file, "Move %d:\n", move_count);
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            fprintf(file, "%c ", board[i][j]);
+        }
+        fprintf(file, "\n");
+    }
+    fprintf(file, "---\n");
+    
+    fclose(file);
 }
+
+// Generate computer move (random valid move)
+void generatingComputerMove(char** board, int n, int* row, int* col) {
+    srand(time(NULL));
+    
+    do {
+        *row = rand() % n;
+        *col = rand() % n;
+    } while (board[*row][*col] != ' ');
+    
+    printf("Computer chooses position (%d, %d)\n", *row + 1, *col + 1);
+}
+

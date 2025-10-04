@@ -1,28 +1,21 @@
 #ifndef TICTACTOE_H
 #define TICTACTOE_H
+
 #include <stdio.h>
 #include <stdlib.h>
-void displayingBoard(char** board, int n);
+#include <time.h>
+#include <string.h>
+
 char** initializingBoard(int n);
 void freeBoard(char** board, int n);
+void displayingBoard(char** board, int n);
+int gettingUserInput(int* row, int* col, int n, char player);
+int validatingMove(char** board, int row, int col, int n);
+int makeMove(char** board, int row, int col, char player);
+int checkWinCon(char** board, int n, char player);
+int checkDrawCon(char** board, int n);
+void logGameStatus(char** board, int n, const char* filename, int move_count);
+void generatingComputerMove(char** board, int n, int* row, int* col);
+
 #endif
 
-int checkWinCon(char** board, int n, char player) {
-    // Check rows and columns
-    for (int i = 0; i < n; i++) {
-        int row_count = 0, col_count = 0;
-        for (int j = 0; j < n; j++) {
-            if (board[i][j] == player) row_count++;
-            if (board[j][i] == player) col_count++;
-        }
-        if (row_count == n || col_count == n) return 1;
-    }
-    
-    // Check diagonals
-    int diag1 = 0, diag2 = 0;
-    for (int i = 0; i < n; i++) {
-        if (board[i][i] == player) diag1++;
-        if (board[i][n-1-i] == player) diag2++;
-    }
-    return (diag1 == n || diag2 == n) ? 1 : 0;
-}
